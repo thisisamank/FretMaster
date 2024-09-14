@@ -1,5 +1,5 @@
 import 'package:dyte_uikit_flutter_starter_app/core/scale.dart';
-import 'package:dyte_uikit_flutter_starter_app/riverpod/note_notifier.dart';
+import 'package:dyte_uikit_flutter_starter_app/notifier/note_notifier.dart';
 import 'package:flutter/material.dart';
 
 class ScaleListWidget extends StatefulWidget {

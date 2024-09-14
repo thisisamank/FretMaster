@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:dyte_uikit_flutter_starter_app/core/scale.dart';
-import 'package:dyte_uikit_flutter_starter_app/pages/exercises/circular_timer_widget.dart';
+import 'package:dyte_uikit_flutter_starter_app/notifier/note_notifier.dart';
+import 'package:dyte_uikit_flutter_starter_app/notifier/states/note_states.dart';
+import 'package:dyte_uikit_flutter_starter_app/pages/widgets/circular_timer_widget.dart';
 import 'package:dyte_uikit_flutter_starter_app/pages/widgets/scale_list_widget.dart';
-import 'package:dyte_uikit_flutter_starter_app/riverpod/note_notifier.dart';
-import 'package:dyte_uikit_flutter_starter_app/riverpod/states/note_states.dart';
 import 'package:flutter/material.dart';
 
 class ScaleNotePractice extends StatefulWidget {

@@ -19,7 +19,6 @@ class CircularTimerWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     double progress = totalTime > 0 ? 1 - (remainingTime / totalTime) : 0;
-    print('progress: $progress');
     return CustomPaint(
       painter: TimerPainter(progress: progress, context: context),
       child: Container(

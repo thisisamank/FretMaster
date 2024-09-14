@@ -1,5 +1,5 @@
 import 'package:dyte_uikit_flutter_starter_app/core/scale.dart';
-import 'package:dyte_uikit_flutter_starter_app/riverpod/states/note_states.dart';
+import 'package:dyte_uikit_flutter_starter_app/notifier/states/note_states.dart';
 import 'package:flutter/material.dart';
 
 class NoteNotifier extends ValueNotifier<NoteStates> {

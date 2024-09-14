@@ -1,10 +1,10 @@
-import 'dart:async';
-
 import 'package:dyte_uikit_flutter_starter_app/core/scale.dart';
-import 'package:dyte_uikit_flutter_starter_app/pages/exercises/circular_timer_widget.dart';
+import 'package:dyte_uikit_flutter_starter_app/notifier/note_notifier.dart';
+import 'package:dyte_uikit_flutter_starter_app/notifier/states/note_states.dart';
+import 'package:dyte_uikit_flutter_starter_app/notifier/timer_notifier.dart';
+import 'package:dyte_uikit_flutter_starter_app/pages/widgets/circular_timer_widget.dart';
+import 'package:dyte_uikit_flutter_starter_app/pages/widgets/set_timer_widget.dart';
 import 'package:dyte_uikit_flutter_starter_app/pages/widgets/space/vh_space.dart';
-import 'package:dyte_uikit_flutter_starter_app/riverpod/note_notifier.dart';
-import 'package:dyte_uikit_flutter_starter_app/riverpod/states/note_states.dart';
 import 'package:flutter/material.dart';
 
 class RandomNotePractice extends StatefulWidget {
@@ -16,71 +16,46 @@ class RandomNotePractice extends StatefulWidget {
 
 class _RandomNotePracticeState extends State<RandomNotePractice> {
   late final NoteNotifier _noteNotifier;
-  Timer? _timer;
-  bool _isTimerRunning = false;
-  int _interval = 5; // Default timer interval in seconds
-  int _remainingTime = 0; // For tracking the remaining time in the timer
-  final TextEditingController _intervalController = TextEditingController(); // Controller for the timer input
-
+  late TimerNotifier _timerNotifier;
+  int _interval = 5000;
   @override
   void initState() {
-    _noteNotifier = NoteNotifier(Notes.A, Scales.major);
-    _remainingTime = _interval;
-    _intervalController.text = _interval.toString(); // Initialize text box with default interval
     super.initState();
+    _noteNotifier = NoteNotifier(Notes.A, Scales.major);
+    _timerNotifier = TimerNotifier(_interval, _interval, _handleNoteChange);
   }
 
-  // Function to start the timer
-  void _startTimer() {
-    if (_isTimerRunning) return; // Prevent multiple timers
-
-    _isTimerRunning = true;
-    _remainingTime = _interval;
-
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_remainingTime > 0) {
-        setState(() {
-          _remainingTime--;
-        });
-      } else {
-        if (_noteNotifier.value is! AllNotesPlayed) {
-          _noteNotifier.getNextNote();
-          _remainingTime = _interval;
-        } else {
-          timer.cancel();
-          _isTimerRunning = false;
-        }
-      }
-    });
-  }
-
-  // Function to stop the timer
-  void _stopTimer() {
-    if (_timer != null) {
-      _timer?.cancel();
-      _isTimerRunning = false;
-    }
-  }
-
-  // Function to reset the timer and notes
+  // Function to reset the notes and timer
   void _resetPractice() {
-    _stopTimer();
-    _remainingTime = _interval;
+    _timerNotifier.resetTimer(_interval);
     _noteNotifier.resetNotes();
   }
 
-  void _updateInterval() {
-    setState(() {
-      _interval = int.tryParse(_intervalController.text) ?? _interval; // Set the interval from the text box input
-      _remainingTime = _interval;
-      _resetPractice(); // Reset practice to apply new interval
-    });
+  void _updateInterval(String value) {
+    final int? newInterval = int.tryParse(value);
+    if (newInterval != null && newInterval > 0) {
+      setState(() {
+        _interval = newInterval * 1000; 
+        _timerNotifier.resetTimer(_interval);
+        _resetPractice();
+      });
+    }
+  }
+
+  void _handleNoteChange() {
+    if (_noteNotifier.value is! AllNotesPlayed) {
+      _noteNotifier.getNextNote();
+      _timerNotifier.resetTimer(_interval);
+      _timerNotifier.startTimer();
+    } else {
+      _timerNotifier.stopTimer(); 
+    }
   }
 
   @override
   void dispose() {
-    _timer?.cancel(); // Cancel the timer when the widget is disposed
-    _intervalController.dispose(); // Dispose the text controller
+    _timerNotifier.dispose();
+    _noteNotifier.dispose();
     super.dispose();
   }
 
@@ -96,31 +71,9 @@ class _RandomNotePracticeState extends State<RandomNotePractice> {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text('Set Timer (seconds): '),
-                  SizedBox(
-                    width: 50,
-                    child: TextField(
-                      controller: _intervalController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                      ),
-                      onSubmitted: (_) => _updateInterval(), // Update interval on submitting
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  ElevatedButton(
-                    onPressed: _updateInterval,
-                    child: const Text('Set'),
-                  ),
-                ],
-              ),
+              child: SetTimerWidget(_updateInterval), // Widget to set timer interval
             ),
             vspace3,
-            // Circular timer and note display
             ValueListenableBuilder(
               valueListenable: _noteNotifier,
               builder: (context, NoteStates state, child) {
@@ -131,13 +84,18 @@ class _RandomNotePracticeState extends State<RandomNotePractice> {
                   currentNote = 'Done!';
                 }
 
-                return CircularTimerWidget(
-                  remainingTime: _remainingTime,
-                  totalTime: _interval,
-                  child: Text(
-                    currentNote,
-                    style: const TextStyle(fontSize: 24),
-                  ),
+                return ValueListenableBuilder<int>(
+                  valueListenable: _timerNotifier,
+                  builder: (context, remainingTime, child) {
+                    return CircularTimerWidget(
+                      remainingTime: remainingTime,
+                      totalTime: _interval,
+                      child: Text(
+                        currentNote,
+                        style: const TextStyle(fontSize: 24),
+                      ),
+                    );
+                  },
                 );
               },
             ),
@@ -156,12 +114,12 @@ class _RandomNotePracticeState extends State<RandomNotePractice> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ElevatedButton(
-                  onPressed: _startTimer,
+                  onPressed: _timerNotifier.startTimer, // Start the timer
                   child: const Text('Start Timer'),
                 ),
                 const SizedBox(width: 10),
                 ElevatedButton(
-                  onPressed: _stopTimer,
+                  onPressed: _timerNotifier.stopTimer, // Stop the timer
                   child: const Text('Stop Timer'),
                 ),
               ],
