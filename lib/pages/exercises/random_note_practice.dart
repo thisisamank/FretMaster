@@ -3,6 +3,7 @@ import 'package:dyte_uikit_flutter_starter_app/notifier/note_notifier.dart';
 import 'package:dyte_uikit_flutter_starter_app/notifier/states/note_states.dart';
 import 'package:dyte_uikit_flutter_starter_app/notifier/timer_notifier.dart';
 import 'package:dyte_uikit_flutter_starter_app/pages/widgets/circular_timer_widget.dart';
+import 'package:dyte_uikit_flutter_starter_app/pages/widgets/fretboard_widget.dart';
 import 'package:dyte_uikit_flutter_starter_app/pages/widgets/set_timer_widget.dart';
 import 'package:dyte_uikit_flutter_starter_app/pages/widgets/space/vh_space.dart';
 import 'package:flutter/material.dart';
@@ -67,62 +68,96 @@ class _RandomNotePracticeState extends State<RandomNotePractice> {
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: SetTimerWidget(_updateInterval),
-            ),
-            vspace3,
-            ValueListenableBuilder(
-              valueListenable: _noteNotifier,
-              builder: (context, NoteStates state, child) {
-                String currentNote = '...';
-                if (state is CurrentNote) {
-                  currentNote = state.note;
-                } else if (state is AllNotesPlayed) {
-                  currentNote = 'Done!';
-                }
-
-                return ValueListenableBuilder<int>(
-                  valueListenable: _timerNotifier,
-                  builder: (context, remainingTime, child) {
-                    return CircularTimerWidget(
-                      remainingTime: remainingTime,
-                      totalTime: _interval,
-                      child: Text(
-                        currentNote,
-                        style: const TextStyle(fontSize: 24),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-            vspace3,
-            ElevatedButton(
-              onPressed: _noteNotifier.getRandomNote,
-              child: const Text('Next Note'),
-            ),
-            vspace2,
-            ElevatedButton(
-              onPressed: _resetPractice,
-              child: const Text('Reset Notes'),
-            ),
-            vspace4,
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                ElevatedButton(
-                  onPressed: _timerNotifier.startTimer, // Start the timer
-                  child: const Text('Start Timer'),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: SetTimerWidget(_updateInterval),
+                    ),                
+                    vspace3,
+                    Row(
+                      children: [
+                      ElevatedButton(
+                      onPressed: _noteNotifier.getRandomNote,
+                      child: const Text('Next Note'),
+                      ),
+                    hspace1,
+                    ElevatedButton(
+                      onPressed: _resetPractice,
+                      child: const Text('Reset Notes'),
+                    ),
+                      ],
+                    ),
+                    
+                    vspace4,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        ElevatedButton(
+                          onPressed: _timerNotifier.startTimer, // Start the timer
+                          child: const Text('Start Timer'),
+                        ),
+                        hspace1,
+                        ElevatedButton(
+                          onPressed: _timerNotifier.stopTimer, // Stop the timer
+                          child: const Text('Stop Timer'),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-                hspace1,
-                ElevatedButton(
-                  onPressed: _timerNotifier.stopTimer, // Stop the timer
-                  child: const Text('Stop Timer'),
-                ),
+                ValueListenableBuilder(
+                      valueListenable: _noteNotifier,
+                      builder: (context, NoteStates state, child) {
+                        String currentNote = '...';
+                        if (state is CurrentNote) {
+                          currentNote = state.note;
+                        } else if (state is AllNotesPlayed) {
+                          currentNote = 'Done!';
+                        }
+                
+                        return ValueListenableBuilder<int>(
+                          valueListenable: _timerNotifier,
+                          builder: (context, remainingTime, child) {
+                            return CircularTimerWidget(
+                              remainingTime: remainingTime,
+                              totalTime: _interval,
+                              child: Text(
+                                currentNote,
+                                style: const TextStyle(fontSize: 24),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
               ],
             ),
+            vspace4,
+          Center(
+          child: ValueListenableBuilder(
+            valueListenable: _noteNotifier,
+            builder: (context, NoteStates state, child) {
+              if (state is CurrentNote) {
+                return FretboardWidget(
+                  tuning: const ['E', 'A', 'D', 'G', 'B', 'E'],
+                  highlightedNotes: {state.note},
+                );
+              } else {
+                return const FretboardWidget(
+                  tuning: ['E', 'A', 'D', 'G', 'B', 'E'],
+                  highlightedNotes: {},
+                );
+              }
+            },
+          ),
+        ),
           ],
         ),
       ),

@@ -1,6 +1,5 @@
 import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
   AppTheme._();
@@ -62,7 +61,7 @@ class AppTheme {
         ),
         visualDensity: FlexColorScheme.comfortablePlatformDensity,
         useMaterial3: true,
-        fontFamily: GoogleFonts.notoSans().fontFamily,
+        // fontFamily: GoogleFonts.notoSans().fontFamily,
       );
 
   static ThemeData get darkTheme => FlexThemeData.dark(
@@ -120,6 +119,6 @@ class AppTheme {
         ),
         visualDensity: FlexColorScheme.comfortablePlatformDensity,
         useMaterial3: true,
-        fontFamily: GoogleFonts.notoSans().fontFamily,
+        // fontFamily: GoogleFonts.notoSans().fontFamily,
       );
 }
