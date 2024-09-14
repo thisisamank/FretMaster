@@ -5,10 +5,10 @@ import 'package:flutter/material.dart';
 class NoteNotifier extends ValueNotifier<NoteStates> {
   NoteNotifier(this.note, this.scale) : _noteGenerator = RandomNoteGenerator(note, scale), super(InitialNote());
 
-  final Notes note;
-  final Scales? scale;
+  Notes note;
+  Scales? scale;
 
-  late final RandomNoteGenerator _noteGenerator;
+  late RandomNoteGenerator _noteGenerator;
 
 
   void getRandomNote() {
@@ -34,6 +34,8 @@ class NoteNotifier extends ValueNotifier<NoteStates> {
   }
 
   void changeNoteAndScale(Notes newNote, Scales newScale) {
+    note = newNote;
+    scale = newScale;
     _noteGenerator = RandomNoteGenerator(newNote, newScale);
     resetNotes();
   }

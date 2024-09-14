@@ -1,10 +1,11 @@
-import 'dart:async';
-
 import 'package:dyte_uikit_flutter_starter_app/core/scale.dart';
 import 'package:dyte_uikit_flutter_starter_app/notifier/note_notifier.dart';
 import 'package:dyte_uikit_flutter_starter_app/notifier/states/note_states.dart';
+import 'package:dyte_uikit_flutter_starter_app/notifier/timer_notifier.dart';
 import 'package:dyte_uikit_flutter_starter_app/pages/widgets/circular_timer_widget.dart';
-import 'package:dyte_uikit_flutter_starter_app/pages/widgets/scale_list_widget.dart';
+import 'package:dyte_uikit_flutter_starter_app/pages/widgets/fretboard_widget.dart';
+import 'package:dyte_uikit_flutter_starter_app/pages/widgets/set_timer_widget.dart';
+import 'package:dyte_uikit_flutter_starter_app/pages/widgets/space/vh_space.dart';
 import 'package:flutter/material.dart';
 
 class ScaleNotePractice extends StatefulWidget {
@@ -15,78 +16,56 @@ class ScaleNotePractice extends StatefulWidget {
 }
 
 class _ScaleNotePracticeState extends State<ScaleNotePractice> {
-  late NoteNotifier _scaleNoteNotifier;
+  late final NoteNotifier _noteNotifier;
+  late TimerNotifier _timerNotifier;
+  int _interval = 5000;
+
   Notes _selectedNote = Notes.A;
   Scales _selectedScale = Scales.major;
-  Timer? _timer;
-  bool _isTimerRunning = false;
-  int _interval = 5;
-  int _remainingTime = 0;
-  final TextEditingController _intervalController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _initializePractice();
-    _intervalController.text = _interval.toString();
+    _noteNotifier = NoteNotifier(_selectedNote, _selectedScale);
+    _timerNotifier = TimerNotifier(_interval, _interval, _handleNoteChange);
   }
 
-  void _initializePractice() {
-    _scaleNoteNotifier = NoteNotifier(_selectedNote, _selectedScale);
-    _remainingTime = _interval;
+  void _resetPractice() {
+    _timerNotifier.resetTimer(_interval);
+    _noteNotifier.resetNotes();
+  }
+
+  void _updateInterval(String value) {
+    final int? newInterval = int.tryParse(value);
+    if (newInterval != null && newInterval > 0) {
+      setState(() {
+        _interval = newInterval * 1000; // Convert seconds to milliseconds
+        _timerNotifier.resetTimer(_interval);
+        _resetPractice();
+      });
+    }
+  }
+
+  void _handleNoteChange() {
+    if (_noteNotifier.value is! AllNotesPlayed) {
+      _noteNotifier.getNextNote();
+      _timerNotifier.resetTimer(_interval);
+      _timerNotifier.startTimer();
+    } else {
+      _timerNotifier.stopTimer();
+    }
   }
 
   void _updatePractice() {
-    _stopTimer();
-    _scaleNoteNotifier.dispose();
-    setState(() {
-      _initializePractice();
-    });
-  }
-
-  void _startTimer() {
-    if (_isTimerRunning) return;
-    _isTimerRunning = true;
-    _remainingTime = _interval;
-
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_remainingTime > 0) {
-        setState(() {
-          _remainingTime--;
-        });
-      } else {
-        if (_scaleNoteNotifier.value is! AllNotesPlayed) {
-          _scaleNoteNotifier.getNextNote();
-          _remainingTime = _interval;
-        } else {
-          timer.cancel();
-          _isTimerRunning = false;
-        }
-      }
-    });
-  }
-
-  void _stopTimer() {
-    _timer?.cancel();
-    _isTimerRunning = false;
+    _timerNotifier.stopTimer();
+    _noteNotifier.changeNoteAndScale(_selectedNote, _selectedScale);
   }
 
   @override
   void dispose() {
-    _stopTimer();
-    _scaleNoteNotifier.dispose();
-    _intervalController.dispose();
+    _timerNotifier.dispose();
+    _noteNotifier.dispose();
     super.dispose();
-  }
-
-  void _onIntervalChange(String value) {
-    final int? newInterval = int.tryParse(value);
-    if (newInterval != null && newInterval > 0) {
-      setState(() {
-        _interval = newInterval;
-        _remainingTime = _interval;
-      });
-    }
   }
 
   @override
@@ -97,107 +76,143 @@ class _ScaleNotePracticeState extends State<ScaleNotePractice> {
       ),
       body: Center(
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Note and Scale Dropdowns
+            // Main Row containing two columns
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                DropdownButton<Notes>(
-                  value: _selectedNote,
-                  items: Notes.values.map((Notes note) {
-                    return DropdownMenuItem<Notes>(
-                      value: note,
-                      child: Text(noteValues[note]!),
-                    );
-                  }).toList(),
-                  onChanged: (Notes? newNote) {
-                    if (newNote != null) {
-                      _selectedNote = newNote;
-                      _updatePractice();
-                    }
-                  },
-                ),
-                DropdownButton<Scales>(
-                  value: _selectedScale,
-                  items: Scales.values.map((Scales scale) {
-                    return DropdownMenuItem<Scales>(
-                      value: scale,
-                      child: Text(scale.name),
-                    );
-                  }).toList(),
-                  onChanged: (Scales? newScale) {
-                    if (newScale != null) {
-                      _selectedScale = newScale;
-                      _updatePractice();
-                    }
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            ScaleListWidget(selectedNote: _selectedNote, selectedScale: _selectedScale),
-            // TextField for setting the interval
-                    Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text('Set Timer (seconds): '),
-                  SizedBox(
-                    width: 50,
-                    child: TextField(
-                      controller: _intervalController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                      ),
-                      onSubmitted: (_) => _onIntervalChange, // Update interval on submitting
+                // First Column with controls
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Note and Scale Dropdowns
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        DropdownButton<Notes>(
+                          value: _selectedNote,
+                          items: Notes.values.map((Notes note) {
+                            return DropdownMenuItem<Notes>(
+                              value: note,
+                              child: Text(noteValues[note]!),
+                            );
+                          }).toList(),
+                          onChanged: (Notes? newNote) {
+                            if (newNote != null) {
+                              setState(() {
+                                _selectedNote = newNote;
+                                _updatePractice();
+                              });
+                            }
+                          },
+                        ),
+                        const SizedBox(width: 10),
+                        DropdownButton<Scales>(
+                          value: _selectedScale,
+                          items: Scales.values.map((Scales scale) {
+                            return DropdownMenuItem<Scales>(
+                              value: scale,
+                              child: Text(scale.name),
+                            );
+                          }).toList(),
+                          onChanged: (Scales? newScale) {
+                            if (newScale != null) {
+                              setState(() {
+                                _selectedScale = newScale;
+                                _updatePractice();
+                              });
+                            }
+                          },
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  ElevatedButton(
-                    onPressed: () => _onIntervalChange(_intervalController.text),
-                    child: const Text('Set'),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            // Circular Timer and Note Display
-            ValueListenableBuilder<NoteStates>(
-              valueListenable: _scaleNoteNotifier,
-              builder: (context, state, child) {
-                String currentNote = 'Start Timer';
-                if (state is CurrentNote) {
-                  currentNote = state.note;
-                } else if (state is AllNotesPlayed) {
-                  currentNote = 'Done!';
-                }
-                return CircularTimerWidget(
-                  remainingTime: _remainingTime,
-                  totalTime: _interval,
-                  child: Text(
-                    currentNote,
-                    style: const TextStyle(fontSize: 24),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 20),
-            // Start and Stop Timer Buttons
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton(
-                  onPressed: _startTimer,
-                  child: const Text('Start Timer'),
+                    vspace3,
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: SetTimerWidget(_updateInterval),
+                    ),
+                    vspace3,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        ElevatedButton(
+                          onPressed: _noteNotifier.getNextNote,
+                          child: const Text('Next Note'),
+                        ),
+                        hspace1,
+                        ElevatedButton(
+                          onPressed: _resetPractice,
+                          child: const Text('Reset Notes'),
+                        ),
+                      ],
+                    ),
+                    vspace3,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        ElevatedButton(
+                          onPressed: _timerNotifier.startTimer,
+                          child: const Text('Start Timer'),
+                        ),
+                        hspace1,
+                        ElevatedButton(
+                          onPressed: _timerNotifier.stopTimer,
+                          child: const Text('Stop Timer'),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 10),
-                ElevatedButton(
-                  onPressed: _stopTimer,
-                  child: const Text('Stop Timer'),
+                hspace3, // Add horizontal space between columns
+                // Second Column with CircularTimerWidget
+                ValueListenableBuilder(
+                  valueListenable: _noteNotifier,
+                  builder: (context, NoteStates state, child) {
+                    String currentNote = '...';
+                    if (state is CurrentNote) {
+                      currentNote = state.note;
+                    } else if (state is AllNotesPlayed) {
+                      currentNote = 'Done!';
+                    }
+
+                    return ValueListenableBuilder<int>(
+                      valueListenable: _timerNotifier,
+                      builder: (context, remainingTime, child) {
+                        return CircularTimerWidget(
+                          remainingTime: remainingTime,
+                          totalTime: _interval,
+                          child: Text(
+                            currentNote,
+                            style: const TextStyle(fontSize: 24),
+                          ),
+                        );
+                      },
+                    );
+                  },
                 ),
               ],
+            ),
+            vspace4,
+            // Fretboard Widget
+            Center(
+              child: ValueListenableBuilder(
+                valueListenable: _noteNotifier,
+                builder: (context, NoteStates state, child) {
+                  if (state is CurrentNote) {
+                    return FretboardWidget(
+                      tuning: const ['E', 'A', 'D', 'G', 'B', 'E'],
+                      highlightedNotes: {state.note},
+                    );
+                  } else {
+                    return const FretboardWidget(
+                      tuning: ['E', 'A', 'D', 'G', 'B', 'E'],
+                      highlightedNotes: {},
+                    );
+                  }
+                },
+              ),
             ),
           ],
         ),
