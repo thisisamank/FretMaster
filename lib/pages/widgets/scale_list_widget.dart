@@ -30,6 +30,7 @@ class _ScaleListWidgetState extends State<ScaleListWidget> {
   }
 
   void _fetchItems() {
+    _noteNotifier.changeNoteAndScale(widget.selectedNote, widget.selectedScale);
     // Depending on whether to show notes or chords, we fetch the respective list
     if (widget.showChords) {
       _items = _noteNotifier.getChords().map((chord) => '${chord.number} ${chord.root}${chord.type}').toList();
@@ -57,6 +58,7 @@ class _ScaleListWidgetState extends State<ScaleListWidget> {
 
   @override
   Widget build(BuildContext context) {
+    print("Building ScaleListWidget");
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Column(
@@ -69,8 +71,8 @@ class _ScaleListWidgetState extends State<ScaleListWidget> {
           ),
           const SizedBox(height: 10),
           SizedBox(
-            height: 60,
             width: 200,
+            height: 30,
             child: ListView.builder(
               scrollDirection: Axis.horizontal, // Set scroll direction to horizontal
               itemCount: _items.length,

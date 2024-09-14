@@ -50,7 +50,6 @@ class _ScaleChordsPracticeState extends State<ScaleChordsPractice> {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_remainingTime > 0) {
         setState(() {
-          print(_remainingTime);
           _remainingTime--;
         });
       } else {

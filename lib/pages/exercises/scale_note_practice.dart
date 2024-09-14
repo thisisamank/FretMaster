@@ -4,6 +4,7 @@ import 'package:dyte_uikit_flutter_starter_app/notifier/states/note_states.dart'
 import 'package:dyte_uikit_flutter_starter_app/notifier/timer_notifier.dart';
 import 'package:dyte_uikit_flutter_starter_app/pages/widgets/circular_timer_widget.dart';
 import 'package:dyte_uikit_flutter_starter_app/pages/widgets/fretboard_widget.dart';
+import 'package:dyte_uikit_flutter_starter_app/pages/widgets/scale_list_widget.dart';
 import 'package:dyte_uikit_flutter_starter_app/pages/widgets/set_timer_widget.dart';
 import 'package:dyte_uikit_flutter_starter_app/pages/widgets/space/vh_space.dart';
 import 'package:flutter/material.dart';
@@ -78,16 +79,13 @@ class _ScaleNotePracticeState extends State<ScaleNotePractice> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Main Row containing two columns
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // First Column with controls
                 Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Note and Scale Dropdowns
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -128,6 +126,8 @@ class _ScaleNotePracticeState extends State<ScaleNotePractice> {
                         ),
                       ],
                     ),
+                    vspace1,
+                    ScaleListWidget(selectedNote: _selectedNote, selectedScale: _selectedScale),
                     vspace3,
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
