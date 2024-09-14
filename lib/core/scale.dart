@@ -104,6 +104,8 @@ class RandomNoteGenerator {
   final List<Chord> _remainingChords = [];
   final List<Chord> _chords = [];
 
+  final List<int> _last3RandomIndexes = [];
+
   RandomNoteGenerator(Notes tonic, Scales? scaleName)
       : _notes = Scale.getScale(tonic, scaleName){
     _remainingNotes.addAll(_notes);
@@ -115,6 +117,17 @@ class RandomNoteGenerator {
     return _chords;
   }
 
+  String getRandomNote() {
+    int randomIndex = _random.nextInt(_notes.length);
+    while (_last3RandomIndexes.contains(randomIndex)) {
+      randomIndex = _random.nextInt(_notes.length);
+    }
+    _last3RandomIndexes.add(randomIndex);
+    if (_last3RandomIndexes.length > 3) {
+      _last3RandomIndexes.removeAt(0);
+    }
+    return _notes[randomIndex];
+  }
   List<String> getNotes() {
     return _notes;
   }

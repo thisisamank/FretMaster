@@ -11,6 +11,10 @@ class NoteNotifier extends ValueNotifier<NoteStates> {
   late final RandomNoteGenerator _noteGenerator;
 
 
+  void getRandomNote() {
+    value = CurrentNote(_noteGenerator.getRandomNote());
+  }
+
   void getNextNote() {
     if (_noteGenerator.hasRemainingNotes()) {
       value = CurrentNote(_noteGenerator.getNextNote());

@@ -21,11 +21,10 @@ class _RandomNotePracticeState extends State<RandomNotePractice> {
   @override
   void initState() {
     super.initState();
-    _noteNotifier = NoteNotifier(Notes.A, Scales.major);
+    _noteNotifier = NoteNotifier(Notes.A, null);
     _timerNotifier = TimerNotifier(_interval, _interval, _handleNoteChange);
   }
 
-  // Function to reset the notes and timer
   void _resetPractice() {
     _timerNotifier.resetTimer(_interval);
     _noteNotifier.resetNotes();
@@ -44,7 +43,7 @@ class _RandomNotePracticeState extends State<RandomNotePractice> {
 
   void _handleNoteChange() {
     if (_noteNotifier.value is! AllNotesPlayed) {
-      _noteNotifier.getNextNote();
+      _noteNotifier.getRandomNote();
       _timerNotifier.resetTimer(_interval);
       _timerNotifier.startTimer();
     } else {
@@ -71,7 +70,7 @@ class _RandomNotePracticeState extends State<RandomNotePractice> {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: SetTimerWidget(_updateInterval), // Widget to set timer interval
+              child: SetTimerWidget(_updateInterval),
             ),
             vspace3,
             ValueListenableBuilder(
@@ -101,7 +100,7 @@ class _RandomNotePracticeState extends State<RandomNotePractice> {
             ),
             vspace3,
             ElevatedButton(
-              onPressed: _noteNotifier.getNextNote,
+              onPressed: _noteNotifier.getRandomNote,
               child: const Text('Next Note'),
             ),
             vspace2,
@@ -117,7 +116,7 @@ class _RandomNotePracticeState extends State<RandomNotePractice> {
                   onPressed: _timerNotifier.startTimer, // Start the timer
                   child: const Text('Start Timer'),
                 ),
-                const SizedBox(width: 10),
+                hspace1,
                 ElevatedButton(
                   onPressed: _timerNotifier.stopTimer, // Stop the timer
                   child: const Text('Stop Timer'),
