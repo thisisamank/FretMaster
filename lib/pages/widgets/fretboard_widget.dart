@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:dyte_uikit_flutter_starter_app/pages/widgets/space/vh_space.dart';
 import 'package:flutter/material.dart';
 
 class FretboardPainter extends CustomPainter {
@@ -32,7 +33,7 @@ class FretboardPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    List<double> fretPositions = _calculateFretPositions(scaleLength);
+    List<double> fretPositions = _calculateEvenFretPositions(scaleLength);
     double totalFretboardLength = fretPositions.last;
     double scaleFactor = size.width / totalFretboardLength;
     List<double> normalizedFrets =
@@ -133,6 +134,15 @@ class FretboardPainter extends CustomPainter {
     return positions;
   }
 
+  List<double> _calculateEvenFretPositions(double fretboardWidth) {
+  List<double> positions = [];
+  double fretWidth = fretboardWidth / totalFrets;
+  for (int fret = 0; fret <= totalFrets; fret++) {
+    positions.add(fret * fretWidth);
+  }
+  return positions;
+}
+
   // Function to get the notes in a major chord
   Set<String>? getNotesInChord(String chordName) {
     int rootIndex = chromaticScale.indexOf(chordName);
@@ -162,7 +172,7 @@ class FretboardPainter extends CustomPainter {
 }
 
 
-class FretboardWidget extends StatelessWidget {
+class FretboardWidget extends StatefulWidget {
   final List<String> tuning;
   final Set<String> highlightedNotes;
   final Set<String>? highlightedChords;
@@ -177,28 +187,63 @@ class FretboardWidget extends StatelessWidget {
   });
 
   @override
+  State<FretboardWidget> createState() => _FretboardWidgetState();
+}
+
+class _FretboardWidgetState extends State<FretboardWidget> {
+  bool _toShowFretboard = true;
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final fretColor = theme.dividerColor.withOpacity(0.4); // Color for frets
     final stringColor = theme.dividerColor.withOpacity(0.4); // Color for strings
-    final noteColor = theme.highlightColor.withOpacity(0.75); // Color for highlighted notes
+    final noteColor = theme.highlightColor.withOpacity(0.7); // Color for highlighted notes
     const noteTextColor = Colors.white; // Color for note text
 
     return SizedBox(
       width: MediaQuery.of(context).size.width * 0.8,
-      height: MediaQuery.of(context).size.height * 0.2,
-      child: CustomPaint(
-        painter: FretboardPainter(
-          tuning: tuning,
-          highlightedNotes: highlightedNotes,
-          highlightedChords: highlightedChords,
-          totalFrets: totalFrets,
-          fretColor: fretColor,
-          stringColor: stringColor,
-          noteColor: noteColor,
-          noteTextColor: noteTextColor,
-        ),
-        child: Container(),
+      height: MediaQuery.of(context).size.height * 0.3,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              const Text('Show Fretboard'),
+              Switch(value: _toShowFretboard, onChanged: (value) {
+                setState(() {
+                  _toShowFretboard = value;
+                });
+              }),
+            ],
+          ),
+          vspace2,
+          if (_toShowFretboard)
+            SizedBox(
+              width: double.infinity,
+              height: MediaQuery.of(context).size.height * 0.2,
+              child: CustomPaint(
+                painter: FretboardPainter(
+                  tuning: widget.tuning,
+                  highlightedNotes: widget.highlightedNotes,
+                  highlightedChords: widget.highlightedChords,
+                  totalFrets: widget.totalFrets,
+                  fretColor: fretColor,
+                  stringColor: stringColor,
+                  noteColor: noteColor,
+                  noteTextColor: noteTextColor,
+                ),
+                child: Container(),
+              ),
+            ),
+            if (!_toShowFretboard)
+              SizedBox(
+                width: double.infinity,
+                height: MediaQuery.of(context).size.height * 0.2,
+                ),
+        ],
       ),
     );
   }

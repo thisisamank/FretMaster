@@ -9,7 +9,10 @@ enum Scales {
   mixolydian,
   lydian,
   phrygian,
-  locrian
+  locrian,
+  major_pentatonic,
+  minor_pentatonic,
+  blues,
 }
 
 enum Notes {
@@ -24,7 +27,7 @@ enum Notes {
   F,
   FSharp,
   G,
-  GSharp
+  GSharp,
 }
 
 const noteValues = {
@@ -56,13 +59,11 @@ class Chord {
   }
 }
 
-
 class Scale {
-
   static List<String> getScale(Notes tonic, Scales? scaleName) {
     final notes = Notes.values.map((e) => noteValues[e]!).toList();
     final tonicIndex = notes.indexOf(noteValues[tonic]!);
-    var scale = <int>[];
+    var scaleIntervals = <int>[];
 
     if (scaleName == null) {
       return notes;
@@ -70,30 +71,41 @@ class Scale {
 
     switch (scaleName) {
       case Scales.major:
-        scale = [0, 2, 4, 5, 7, 9, 11];
+        scaleIntervals = [0, 2, 4, 5, 7, 9, 11];
         break;
       case Scales.minor:
-        scale = [0, 2, 3, 5, 7, 8, 10];
+        scaleIntervals = [0, 2, 3, 5, 7, 8, 10];
         break;
       case Scales.dorian:
-        scale = [0, 2, 3, 5, 7, 9, 10];
+        scaleIntervals = [0, 2, 3, 5, 7, 9, 10];
         break;
       case Scales.mixolydian:
-        scale = [0, 2, 4, 5, 7, 9, 10];
+        scaleIntervals = [0, 2, 4, 5, 7, 9, 10];
         break;
       case Scales.lydian:
-        scale = [0, 2, 4, 6, 7, 9, 11];
+        scaleIntervals = [0, 2, 4, 6, 7, 9, 11];
         break;
       case Scales.phrygian:
-        scale = [0, 1, 3, 5, 7, 8, 10];
+        scaleIntervals = [0, 1, 3, 5, 7, 8, 10];
         break;
       case Scales.locrian:
-        scale = [0, 1, 3, 5, 6, 8, 10];
+        scaleIntervals = [0, 1, 3, 5, 6, 8, 10];
+        break;
+      case Scales.major_pentatonic:
+        scaleIntervals = [0, 2, 4, 7, 9]; // Intervals for major pentatonic
+        break;
+      case Scales.minor_pentatonic:
+        scaleIntervals = [0, 3, 5, 7, 10]; // Intervals for minor pentatonic
+        break;
+      case Scales.blues:
+        scaleIntervals = [0, 3, 5, 6, 7, 10]; // Intervals for blues scale
         break;
     }
 
     // Map the scale intervals to notes and return the corresponding note names
-    return scale.map((i) => notes[(tonicIndex + i) % notes.length]).toList();
+    return scaleIntervals
+        .map((i) => notes[(tonicIndex + i) % notes.length])
+        .toList();
   }
 }
 
@@ -107,10 +119,10 @@ class RandomNoteGenerator {
   final List<int> _last3RandomIndexes = [];
 
   RandomNoteGenerator(Notes tonic, Scales? scaleName)
-      : _notes = Scale.getScale(tonic, scaleName){
+      : _notes = Scale.getScale(tonic, scaleName) {
     _remainingNotes.addAll(_notes);
-    _chords.addAll(generateChords());
-    _remainingChords.addAll(generateChords());
+    _chords.addAll(generateChords(tonic, scaleName));
+    _remainingChords.addAll(_chords);
   }
 
   List<Chord> getChords() {
@@ -128,6 +140,7 @@ class RandomNoteGenerator {
     }
     return _notes[randomIndex];
   }
+
   List<String> getNotes() {
     return _notes;
   }
@@ -154,23 +167,37 @@ class RandomNoteGenerator {
       ..addAll(_notes);
     _remainingChords
       ..clear()
-      ..addAll(generateChords());
+      ..addAll(_chords);
   }
 
   // Function to generate chords using the Chord class
-  List<Chord> generateChords() {
-    // Chord qualities for the major scale degrees
-    const chordQualities = ['maj', 'min', 'min', 'maj', 'maj', 'min', 'dim'];
+  static List<Chord> generateChords(Notes tonic, Scales? scaleName) {
+    final notes = Scale.getScale(tonic, scaleName);
+    final scaleLength = notes.length;
+
+    // Define chord qualities for each scale
+    Map<Scales, List<String>> scaleChordQualities = {
+      Scales.major: ['maj', 'min', 'min', 'maj', 'maj', 'min', 'dim'],
+      Scales.minor: ['min', 'dim', 'maj', 'min', 'min', 'maj', 'maj'],
+      Scales.major_pentatonic: ['maj', 'maj', 'min', 'min', 'maj'],
+      Scales.minor_pentatonic: ['min', 'min', 'maj', 'maj', 'min'],
+      Scales.blues: ['min7', 'min', 'maj', 'dim', 'maj', 'min7'],
+      // Add chord qualities for other scales if needed
+    };
+
+    var chordQualities = scaleChordQualities[scaleName] ??
+        ['maj', 'min', 'min', 'maj', 'maj', 'min', 'dim'];
 
     var chords = <Chord>[];
 
-    int scaleLength = _notes.length;
-
     for (var i = 0; i < scaleLength; i++) {
-      var root = _notes[i];
-      var third = _notes[(i + 2) % scaleLength]; // Third degree
-      var fifth = _notes[(i + 4) % scaleLength]; // Fifth degree
-      var quality = chordQualities[i % 7];
+      var root = notes[i];
+      var thirdIndex = (i + 2) % scaleLength; // Third degree
+      var fifthIndex = (i + 4) % scaleLength; // Fifth degree
+
+      var third = notes[thirdIndex];
+      var fifth = notes[fifthIndex];
+      var quality = chordQualities[i % chordQualities.length];
 
       var chordNotes = [root, third, fifth];
       chords.add(Chord(root, quality, chordNotes, i + 1));

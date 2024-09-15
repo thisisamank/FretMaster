@@ -206,9 +206,9 @@ class _ScaleNotePracticeState extends State<ScaleNotePractice> {
                       highlightedNotes: {state.note},
                     );
                   } else {
-                    return const FretboardWidget(
-                      tuning: ['E', 'A', 'D', 'G', 'B', 'E'],
-                      highlightedNotes: {},
+                    return FretboardWidget(
+                      tuning: const ['E', 'A', 'D', 'G', 'B', 'E'],
+                      highlightedNotes: _noteNotifier.getNotes().toSet(),
                     );
                   }
                 },
