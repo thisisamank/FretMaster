@@ -1,6 +1,7 @@
 import 'package:dyte_uikit_flutter_starter_app/pages/exercises/random_note_practice.dart';
 import 'package:dyte_uikit_flutter_starter_app/pages/exercises/scale_chords_practice.dart';
 import 'package:dyte_uikit_flutter_starter_app/pages/exercises/scale_note_practice.dart';
+import 'package:dyte_uikit_flutter_starter_app/pages/teaching_page.dart';
 import 'package:dyte_uikit_flutter_starter_app/pages/widgets/size/size_config.dart';
 import 'package:dyte_uikit_flutter_starter_app/theme/app_theme.dart';
 import 'package:flutter/material.dart';
@@ -42,6 +43,10 @@ class PracticeHomePage extends StatelessWidget {
         'title': const Text('Scale Chords Practice'),
         'page': const ScaleChordsPractice(),
       },
+      {
+        'title': const Text('Teaching Page'),
+        'page': const TeachingPage(),
+      }
     ];
 
     return Scaffold(
