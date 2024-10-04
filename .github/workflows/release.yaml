@@ -40,7 +40,7 @@ jobs:
   #       run: |
   #         git config --global user.email "thisisamank@gmail.com"
   #         git config --global user.name "Aman Kumar"
-  #         git tag ${{ env.VERSION }}
+  #         git tag -a ${{ env.VERSION }} -m "Release ${{ env.VERSION }}"
   #         git push origin ${{ env.VERSION }}
   #     - name: Release to github
   #       uses: softprops/action-gh-release@v2
@@ -64,6 +64,11 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
+      - name: Install OS Dependencies
+        run: |
+          choco install cmake -y
+          choco install ninja -y
+          choco install visualstudio2019buildtools -y
       - name: Install project dependencies
         run: flutter pub get
       - name: Generate intermediates
@@ -82,7 +87,7 @@ jobs:
         run: |
           git config --global user.email "thisisamank@gmail.com"
           git config --global user.name "Aman Kumar"
-          git tag ${{ env.VERSION }}
+          git tag -a ${{ env.VERSION }} -m "Release ${{ env.VERSION }}"
           git push origin ${{ env.VERSION }}
       - name: Release to GitHub
         uses: softprops/action-gh-release@v2
@@ -124,7 +129,7 @@ jobs:
         run: |
           git config --global user.email "thisisamank@gmail.com"
           git config --global user.name "Aman Kumar"
-          git tag ${{ env.VERSION }}
+          git tag -a ${{ env.VERSION }} -m "Release ${{ env.VERSION }}"
           git push origin ${{ env.VERSION }}
       - name: Release to GitHub
         uses: softprops/action-gh-release@v2
