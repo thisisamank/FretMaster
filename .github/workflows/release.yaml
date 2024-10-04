@@ -57,7 +57,7 @@ jobs:
       contents: write
 
     env:
-      VERSION: v${{ github.run_number }}-windows-$(echo $(( $(date +'%s') / 60 )))
+      VERSION: v${{ github.run_number }}-windows-$(date +"%Y%m%d%H%M%S")
 
     steps:
       - uses: actions/checkout@v2
@@ -99,7 +99,7 @@ jobs:
       contents: write
 
     env:
-      VERSION: v${{ github.run_number }}-macos-$(echo $(( $(date +'%s') / 60 )))
+      VERSION: v${{ github.run_number }}-macos-$(date +"%Y%m%d%H%M%S")
 
     steps:
       - uses: actions/checkout@v2
