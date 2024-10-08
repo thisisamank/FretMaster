@@ -157,18 +157,14 @@ jobs:
           name: macos-app-${{ needs.determine_version.outputs.new_version }}
           path: ./macos
 
-      - name: Create GitHub Release
-        id: create_release
-        uses: actions/create-release@v1
+      - name: Create a Release
+        uses: elgohr/Github-Release-Action@v5
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ needs.determine_version.outputs.new_version }}
-          release_name: Release ${{ needs.determine_version.outputs.new_version }}
-          body: |
-            New release of the Flutter app.
-          draft: false
-          prerelease: false
+          title: Release ${{ needs.determine_version.outputs.new_version }}
+          tag: ${{ needs.determine_version.outputs.new_version }}
+
 
       - name: Upload Windows Asset
         uses: actions/upload-release-asset@v1
