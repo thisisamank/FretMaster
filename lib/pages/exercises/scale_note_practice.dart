@@ -204,11 +204,14 @@ class _ScaleNotePracticeState extends State<ScaleNotePractice> {
                     return FretboardWidget(
                       tuning: const ['E', 'A', 'D', 'G', 'B', 'E'],
                       highlightedNotes: {state.note},
+                      totalFrets: 17,
                     );
                   } else {
                     return FretboardWidget(
                       tuning: const ['E', 'A', 'D', 'G', 'B', 'E'],
                       highlightedNotes: _noteNotifier.getNotes().toSet(),
+                      totalFrets: 17,
+
                     );
                   }
                 },

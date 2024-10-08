@@ -150,9 +150,9 @@ class _RandomNotePracticeState extends State<RandomNotePractice> {
                   highlightedNotes: {state.note},
                 );
               } else {
-                return const FretboardWidget(
-                  tuning: ['E', 'A', 'D', 'G', 'B', 'E'],
-                  highlightedNotes: {},
+                return  FretboardWidget(
+                  tuning: const ['E', 'A', 'D', 'G', 'B', 'E'],
+                  highlightedNotes: const {},
                 );
               }
             },

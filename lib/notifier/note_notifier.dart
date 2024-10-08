@@ -10,6 +10,8 @@ class NoteNotifier extends ValueNotifier<NoteStates> {
 
   late RandomNoteGenerator _noteGenerator;
 
+  Notes get currentNote => note;
+
   List<String> getScaleNotes() {
     return _noteGenerator.notes;
   }

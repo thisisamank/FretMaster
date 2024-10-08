@@ -4,9 +4,11 @@ import 'package:dyte_uikit_flutter_starter_app/pages/widgets/space/vh_space.dart
 import 'package:flutter/material.dart';
 
 class FretboardPainter extends CustomPainter {
+  final BuildContext context; // Added BuildContext
   final List<String> tuning;
   final Set<String> highlightedNotes;
   final Set<String>? highlightedChords;
+  final String rootNote;
   final int totalFrets;
   final Color fretColor;
   final Color stringColor;
@@ -14,6 +16,7 @@ class FretboardPainter extends CustomPainter {
   final Color noteTextColor;
 
   FretboardPainter({
+    required this.context, // Added BuildContext
     required this.tuning,
     required this.highlightedNotes,
     this.highlightedChords,
@@ -22,6 +25,7 @@ class FretboardPainter extends CustomPainter {
     required this.stringColor,
     required this.noteColor,
     required this.noteTextColor,
+    required this.rootNote,
   });
 
   static const List<String> chromaticScale = [
@@ -33,6 +37,9 @@ class FretboardPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    // Get the root note color from the theme
+    final Color rootNoteColor = Theme.of(context).colorScheme.secondary;
+
     List<double> fretPositions = _calculateEvenFretPositions(scaleLength);
     double totalFretboardLength = fretPositions.last;
     double scaleFactor = size.width / totalFretboardLength;
@@ -57,7 +64,7 @@ class FretboardPainter extends CustomPainter {
       canvas.drawLine(Offset(0, y), Offset(size.width, y), stringPaint);
     }
 
-    // Prepare chord notes set
+    // Prepare chord notes and root notes sets
     Set<String> chordNotesSet = {};
     if (highlightedChords != null) {
       for (String chord in highlightedChords!) {
@@ -80,11 +87,13 @@ class FretboardPainter extends CustomPainter {
 
         bool isNoteHighlighted = highlightedNotes.contains(note);
         bool isChordHighlighted = chordNotesSet.contains(note);
+        bool isRootNote = rootNote == note;
 
         if (isNoteHighlighted || isChordHighlighted) {
           double x = (normalizedFrets[fret - 1] + normalizedFrets[fret]) / 2;
           double y = stringIndex * stringSpacing;
-          Paint circlePaint = Paint()..color = noteColor;
+          Paint circlePaint = Paint()
+            ..color = isRootNote ? rootNoteColor : noteColor;
           canvas.drawCircle(Offset(x, y), stringSpacing / 2.5, circlePaint);
 
           TextPainter textPainter = TextPainter(
@@ -135,13 +144,13 @@ class FretboardPainter extends CustomPainter {
   }
 
   List<double> _calculateEvenFretPositions(double fretboardWidth) {
-  List<double> positions = [];
-  double fretWidth = fretboardWidth / totalFrets;
-  for (int fret = 0; fret <= totalFrets; fret++) {
-    positions.add(fret * fretWidth);
+    List<double> positions = [];
+    double fretWidth = fretboardWidth / totalFrets;
+    for (int fret = 0; fret <= totalFrets; fret++) {
+      positions.add(fret * fretWidth);
+    }
+    return positions;
   }
-  return positions;
-}
 
   // Function to get the notes in a major chord
   Set<String>? getNotesInChord(String chordName) {
@@ -171,20 +180,20 @@ class FretboardPainter extends CustomPainter {
   }
 }
 
-
 class FretboardWidget extends StatefulWidget {
   final List<String> tuning;
   final Set<String> highlightedNotes;
   final Set<String>? highlightedChords;
   final int totalFrets;
+  final String rootNote;
 
-  const FretboardWidget({
+  FretboardWidget({
     super.key,
     required this.tuning,
     required this.highlightedNotes,
     this.highlightedChords,
     this.totalFrets = 22,
-  });
+  }) : rootNote = highlightedNotes.first;
 
   @override
   State<FretboardWidget> createState() => _FretboardWidgetState();
@@ -212,11 +221,14 @@ class _FretboardWidgetState extends State<FretboardWidget> {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               const Text('Show Fretboard'),
-              Switch(value: _toShowFretboard, onChanged: (value) {
-                setState(() {
-                  _toShowFretboard = value;
-                });
-              }),
+              Switch(
+                value: _toShowFretboard,
+                onChanged: (value) {
+                  setState(() {
+                    _toShowFretboard = value;
+                  });
+                },
+              ),
             ],
           ),
           vspace2,
@@ -226,6 +238,7 @@ class _FretboardWidgetState extends State<FretboardWidget> {
               height: MediaQuery.of(context).size.height * 0.2,
               child: CustomPaint(
                 painter: FretboardPainter(
+                  context: context,
                   tuning: widget.tuning,
                   highlightedNotes: widget.highlightedNotes,
                   highlightedChords: widget.highlightedChords,
@@ -234,15 +247,16 @@ class _FretboardWidgetState extends State<FretboardWidget> {
                   stringColor: stringColor,
                   noteColor: noteColor,
                   noteTextColor: noteTextColor,
+                  rootNote: widget.rootNote,
                 ),
                 child: Container(),
               ),
             ),
-            if (!_toShowFretboard)
-              SizedBox(
-                width: double.infinity,
-                height: MediaQuery.of(context).size.height * 0.2,
-                ),
+          if (!_toShowFretboard)
+            SizedBox(
+              width: double.infinity,
+              height: MediaQuery.of(context).size.height * 0.2,
+            ),
         ],
       ),
     );
