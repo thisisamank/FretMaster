@@ -6,7 +6,7 @@ on:
       - main
 
 permissions:
-  contents: write 
+  contents: write
 
 jobs:
   determine_version:
@@ -35,7 +35,7 @@ jobs:
 
       - name: Install Commitizen and Conventional Changelog
         run: |
-          pip install commitizen
+          pip install --upgrade commitizen
           npm install -g conventional-changelog-conventionalcommits
 
       - name: Configure Git User
@@ -49,15 +49,15 @@ jobs:
         run: |
           git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}
 
-      - name: Create Initial Tag (if none exists)
-        run: |
-          if [ -z "$(git tag)" ]; then
-            git tag 0.0.0  # Updated tag format
-            git push origin 0.0.0
-          fi
-
-      - name: List Tags Before Bump
+      - name: List Local Tags
         run: git tag
+
+      - name: Show Tag Details
+        run: |
+          for tag in $(git tag); do
+            echo "Tag: $tag"
+            git show $tag --quiet
+          done
 
       - name: Run Semantic Release
         id: semantic_release
@@ -73,111 +73,3 @@ jobs:
         run: |
           git push origin HEAD:main
           git push origin --tags
-
-  build_windows:
-    needs: determine_version
-    runs-on: windows-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          tags: true
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: 'stable'
-
-      - name: Install Dependencies
-        run: flutter pub get
-
-      - name: Build Windows App
-        run: flutter build windows --release
-
-      - name: Upload Windows Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: windows-app-${{ needs.determine_version.outputs.new_version }}
-          path: build/windows/runner/Release/*.exe
-
-  build_macos:
-    needs: determine_version
-    runs-on: macos-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          tags: true
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: 'stable'
-
-      - name: Install Dependencies
-        run: flutter pub get
-
-      - name: Build macOS App
-        run: flutter build macos --release
-
-      - name: Upload macOS Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: macos-app-${{ needs.determine_version.outputs.new_version }}
-          path: build/macos/Build/Products/Release/*.app
-
-  create_release:
-    needs: [build_windows, build_macos]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download Windows Artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: windows-app-${{ needs.determine_version.outputs.new_version }}
-          path: ./windows
-
-      - name: Download macOS Artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: macos-app-${{ needs.determine_version.outputs.new_version }}
-          path: ./macos
-
-      - name: Create GitHub Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ needs.determine_version.outputs.new_version }}
-          release_name: Release ${{ needs.determine_version.outputs.new_version }}
-          body: |
-            New release of the Flutter app.
-          draft: false
-          prerelease: false
-
-      - name: Upload Windows Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./windows/*.exe
-          asset_name: app-windows-${{ needs.determine_version.outputs.new_version }}.exe
-          asset_content_type: application/octet-stream
-
-      - name: Zip macOS App
-        run: |
-          cd macos
-          zip -r app-macos-${{ needs.determine_version.outputs.new_version }}.zip *.app
-
-      - name: Upload macOS Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./macos/app-macos-${{ needs.determine_version.outputs.new_version }}.zip
-          asset_name: app-macos-${{ needs.determine_version.outputs.new_version }}.zip
-          asset_content_type: application/zip
