@@ -92,9 +92,9 @@ jobs:
           tags: true
 
       - name: Set up Flutter
-        uses: subosito/flutter-action@v2.5.0
+        uses: subosito/flutter-action@v2
         with:
-          flutter-version: 'stable'
+          channel: stable
 
       - name: Install Dependencies
         run: flutter pub get
@@ -119,10 +119,9 @@ jobs:
           tags: true
 
       - name: Set up Flutter
-        uses: subosito/flutter-action@v2.5.0  # Use version v2.5.0 or newer
+        uses: subosito/flutter-action@v2
         with:
-          flutter-version: 'stable'
-          architecture: 'x64'  # Specify x64 architecture
+          channel: stable
 
       - name: Install Dependencies
         run: flutter pub get
